@@ -7,13 +7,17 @@
     "node": ">=18"
   },
   "scripts": {
-    "dev": "tsx watch src/server.ts"
+    "dev": "tsx watch src/server.ts",
+    "prepare": "husky install"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@commitlint/cli": "^17.6.1",
+    "@commitlint/config-conventional": "^17.6.1",
     "@types/node": "^18.15.11",
+    "husky": "^8.0.3",
     "tsx": "^3.12.6",
     "typescript": "^5.0.4"
   },
