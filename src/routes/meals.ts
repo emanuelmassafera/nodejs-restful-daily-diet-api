@@ -76,4 +76,23 @@ export async function mealsRoutes(app: FastifyInstance) {
       return reply.status(200).send({ meal })
     },
   )
+
+  app.delete(
+    '/:id',
+    {
+      preHandler: [checkForExistenceOfSessionId],
+    },
+    async (request, reply) => {
+      const deleteMealParamsSchema = z.object({
+        id: z.string().uuid(),
+      })
+      const { id } = deleteMealParamsSchema.parse(request.params)
+
+      const { sessionId } = request.cookies
+
+      await knex('meals').delete().where({ session_id: sessionId, id })
+
+      return reply.status(204).send()
+    },
+  )
 }
