@@ -5,38 +5,36 @@ import { knex } from '../database'
 import { checkForExistenceOfSessionId } from '../middlewares/check-for-existence-of-session-id'
 
 export async function mealsRoutes(app: FastifyInstance) {
-  app.post('/', async (request, reply) => {
-    const createMealBodySchema = z.object({
-      title: z.string(),
-      description: z.string(),
-      date: z.coerce.date(),
-      isInsideTheDiet: z.boolean(),
-    })
-
-    const { title, description, date, isInsideTheDiet } =
-      createMealBodySchema.parse(request.body)
-
-    let { sessionId } = request.cookies
-    if (!sessionId) {
-      sessionId = randomUUID()
-
-      reply.setCookie('sessionId', sessionId, {
-        path: '/',
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+  app.post(
+    '/',
+    {
+      preHandler: [checkForExistenceOfSessionId],
+    },
+    async (request, reply) => {
+      const createMealBodySchema = z.object({
+        title: z.string(),
+        description: z.string(),
+        date: z.coerce.date(),
+        isInsideTheDiet: z.boolean(),
       })
-    }
 
-    await knex('meals').insert({
-      id: randomUUID(),
-      session_id: sessionId,
-      title,
-      description,
-      date,
-      inside_the_diet: isInsideTheDiet,
-    })
+      const { title, description, date, isInsideTheDiet } =
+        createMealBodySchema.parse(request.body)
 
-    return reply.status(201).send()
-  })
+      const { sessionId } = request.cookies
+
+      await knex('meals').insert({
+        id: randomUUID(),
+        title,
+        description,
+        date,
+        inside_the_diet: isInsideTheDiet,
+        user_id: sessionId,
+      })
+
+      return reply.status(201).send()
+    },
+  )
 
   app.get(
     '/',
@@ -47,7 +45,7 @@ export async function mealsRoutes(app: FastifyInstance) {
       const { sessionId } = request.cookies
 
       const meals = await knex('meals')
-        .where('session_id', sessionId)
+        .where({ user_id: sessionId })
         .select('*')
 
       return reply.status(200).send({
@@ -69,9 +67,7 @@ export async function mealsRoutes(app: FastifyInstance) {
 
       const { sessionId } = request.cookies
 
-      const meal = await knex('meals')
-        .where({ session_id: sessionId, id })
-        .first()
+      const meal = await knex('meals').where({ user_id: sessionId, id }).first()
 
       return reply.status(200).send({ meal })
     },
@@ -90,7 +86,7 @@ export async function mealsRoutes(app: FastifyInstance) {
 
       const { sessionId } = request.cookies
 
-      await knex('meals').delete().where({ session_id: sessionId, id })
+      await knex('meals').where({ user_id: sessionId, id }).delete()
 
       return reply.status(204).send()
     },
@@ -118,14 +114,12 @@ export async function mealsRoutes(app: FastifyInstance) {
 
       const { sessionId } = request.cookies
 
-      await knex('meals')
-        .update({
-          title,
-          description,
-          date,
-          inside_the_diet: isInsideTheDiet,
-        })
-        .where({ session_id: sessionId, id })
+      await knex('meals').where({ user_id: sessionId, id }).update({
+        title,
+        description,
+        date,
+        inside_the_diet: isInsideTheDiet,
+      })
 
       return reply.status(204).send()
     },

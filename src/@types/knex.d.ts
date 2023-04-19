@@ -3,13 +3,18 @@ import { Knex } from 'knex'
 
 declare module 'knex/types/tables' {
   export interface Tables {
+    users: {
+      id: string
+      name: string
+    }
+
     meals: {
       id: string
-      session_id: string
       title: string
       description: string
       date: Date
       inside_the_diet: boolean
+      user_id: string
     }
   }
 }
