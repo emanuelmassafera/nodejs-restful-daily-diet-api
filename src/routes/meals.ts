@@ -128,4 +128,49 @@ export async function mealsRoutes(app: FastifyInstance) {
       return reply.status(204).send()
     },
   )
+
+  app.get(
+    '/summary',
+    {
+      preHandler: [checkForExistenceOfSessionId],
+    },
+    async (request, reply) => {
+      const { sessionId } = request.cookies
+
+      const totalMeals = Number(
+        (await knex('meals').where({ user_id: sessionId }).count())[0][
+          'count(*)'
+        ],
+      )
+      const totalMealsInsideTheDiet = Number(
+        (
+          await knex('meals')
+            .where({ user_id: sessionId, inside_the_diet: true })
+            .count()
+        )[0]['count(*)'],
+      )
+
+      let bestSequenceInsideTheDiet = 0
+      const sequencesInsideTheDiet = await knex('meals')
+        .where({ user_id: sessionId, inside_the_diet: true })
+        .groupBy('day')
+        .count()
+
+      sequencesInsideTheDiet.forEach((element) => {
+        const mealsInsideTheDiet = Number(element['count(*)'])
+        if (mealsInsideTheDiet > bestSequenceInsideTheDiet) {
+          bestSequenceInsideTheDiet = mealsInsideTheDiet
+        }
+      })
+
+      return reply.status(200).send({
+        summary: {
+          totalMeals,
+          insideTheDiet: totalMealsInsideTheDiet,
+          offTheDiet: totalMeals - totalMealsInsideTheDiet,
+          bestSequenceInsideTheDiet,
+        },
+      })
+    },
+  )
 }
