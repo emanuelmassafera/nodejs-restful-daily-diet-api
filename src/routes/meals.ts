@@ -14,11 +14,12 @@ export async function mealsRoutes(app: FastifyInstance) {
       const createMealBodySchema = z.object({
         title: z.string(),
         description: z.string(),
-        date: z.coerce.date(),
+        day: z.string(),
+        hour: z.string(),
         isInsideTheDiet: z.boolean(),
       })
 
-      const { title, description, date, isInsideTheDiet } =
+      const { title, description, day, hour, isInsideTheDiet } =
         createMealBodySchema.parse(request.body)
 
       const { sessionId } = request.cookies
@@ -27,7 +28,8 @@ export async function mealsRoutes(app: FastifyInstance) {
         id: randomUUID(),
         title,
         description,
-        date,
+        day,
+        hour,
         inside_the_diet: isInsideTheDiet,
         user_id: sessionId,
       })
@@ -106,10 +108,11 @@ export async function mealsRoutes(app: FastifyInstance) {
       const updateMealBodySchema = z.object({
         title: z.string(),
         description: z.string(),
-        date: z.coerce.date(),
+        day: z.string(),
+        hour: z.string(),
         isInsideTheDiet: z.boolean(),
       })
-      const { title, description, date, isInsideTheDiet } =
+      const { title, description, day, hour, isInsideTheDiet } =
         updateMealBodySchema.parse(request.body)
 
       const { sessionId } = request.cookies
@@ -117,7 +120,8 @@ export async function mealsRoutes(app: FastifyInstance) {
       await knex('meals').where({ user_id: sessionId, id }).update({
         title,
         description,
-        date,
+        day,
+        hour,
         inside_the_diet: isInsideTheDiet,
       })
 
