@@ -10,6 +10,7 @@
     "dev": "tsx watch src/server.ts",
     "knex": "node --no-warnings --loader tsx ./node_modules/knex/bin/cli.js",
     "lint": "eslint src --ext .ts --fix",
+    "build": "tsup src --out-dir build",
     "prepare": "husky install"
   },
   "keywords": [],
@@ -31,6 +32,7 @@
     "eslint": "^8.38.0",
     "husky": "^8.0.3",
     "sqlite3": "^5.1.6",
+    "tsup": "^6.7.0",
     "tsx": "^3.12.6",
     "typescript": "^5.0.4"
   }
